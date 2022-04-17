@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  app: &app
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - mysql
+    tty: true
+    stdin_open: true
+    environment:
+      EDITOR: vim
+      MYSQL_URL: mysql2://root@mysql:3306
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - 3307:3306
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_NAME: 'play_v_db'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: ''
+      MYSQL_HOST: '172.30.176.1'
+      MYSQL_PORT: '3307'
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_general_ci
+      MYSQL_INNODB_LARGE_PREFIX: 1
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    volumes:
+      - data-mysql:/var/lib/mysql
+  web:
+    <<: *app
+    command: python manage.py runserver 0.0.0.0:3000
+    ports:
+      - 3000:3000
+    depends_on:
+      - mysql
+
+volumes:
+  data-mysql:
+    driver: local
